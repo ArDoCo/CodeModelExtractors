@@ -17,6 +17,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model.JavaProject;
+import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.output.OntologyWriter;
+import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.visitors.JavaFileVisitor;
+
 /**
  * @author Jan Keim
  *
@@ -74,13 +78,14 @@ public class JavaCodeModelExtractor {
             logger.warn(e.getMessage(), e.getCause());
         }
         // afterwards, process information and save them
-        processAndSaveInformation(javaFileVisitor);
+        processAndSaveInformation(javaFileVisitor.getProject(), outputDir);
     }
 
-    private static void processAndSaveInformation(JavaFileVisitor javaFileVisitor) {
+    private static void processAndSaveInformation(JavaProject javaFileVisitor, Path outputDir) {
+        // process
         javaFileVisitor.getClassNames().forEach(logger::info);
         logger.info("\n");
-        var clazz = javaFileVisitor.getClasses().select(m -> m.getName().equals("LoopHelper")).getFirst();
+        var clazz = javaFileVisitor.getClassesAndInterfaces().select(m -> m.getName().equals("LoopHelper")).getFirst();
         clazz.getConstructors().forEach(c -> {
             logger.info(c.getContainer().getFullyQualifiedName());
             logger.info(c.getJavadocContent());
@@ -92,6 +97,15 @@ public class JavaCodeModelExtractor {
             logger.info(m.getJavadocContent());
             logger.info("\n");
         });
+        clazz.getAllComments().forEach(logger::info);
+
+        // finally, save the information
+        save(javaFileVisitor, outputDir);
+    }
+
+    private static void save(JavaProject project, Path outputDir) {
+        var writer = new OntologyWriter(outputDir);
+        writer.write(project);
     }
 
     private static void printUsage() {

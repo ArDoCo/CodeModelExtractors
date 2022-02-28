@@ -2,6 +2,7 @@
 package edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
@@ -47,6 +48,29 @@ public class JavaClassOrInterface {
 
     public List<Constructor> getConstructors() {
         return declaration.getConstructors().stream().map(cd -> new Constructor(cd, this)).toList();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(declaration);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        var other = (JavaClassOrInterface) obj;
+        return Objects.equals(declaration, other.declaration);
+    }
+
+    @Override
+    public String toString() {
+        return "JavaClassOrInterface [" + (getFullyQualifiedName() != null ? "getFullyQualifiedName()=" + getFullyQualifiedName() + ", " : "")
+                + "isInterface()=" + isInterface() + "]";
     }
 
 }

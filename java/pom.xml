@@ -32,6 +32,10 @@
       <artifactId>javaparser-symbol-solver-core</artifactId>
       <version>3.24.0</version>
     </dependency>
+    <dependency>
+      <groupId>edu.kit.kastel.informalin</groupId>
+      <artifactId>ontology-connector</artifactId>
+    </dependency>
     <!-- Eclipse collections -->
     <dependency>
       <groupId>org.eclipse.collections</groupId>

@@ -1,5 +1,5 @@
 /* Licensed under MIT 2022. */
-package edu.kit.kastel.mcse.ardoco.codemodelextractor.java;
+package edu.kit.kastel.mcse.ardoco.codemodelextractor.java.visitors;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -7,11 +7,9 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import org.eclipse.collections.api.factory.Lists;
-import org.eclipse.collections.api.list.MutableList;
-
 import com.github.javaparser.StaticJavaParser;
-import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model.JavaClassOrInterface;
+
+import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model.JavaProject;
 
 /**
  * @author Jan Keim
@@ -19,7 +17,7 @@ import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model.JavaClassOrInter
  */
 public class JavaFileVisitor implements FileVisitor<Path> {
     private static final String JAVA_FILE_ENDING = ".java";
-    private MutableList<JavaClassOrInterface> classes = Lists.mutable.empty();
+    private JavaProject project = new JavaProject();
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -30,7 +28,7 @@ public class JavaFileVisitor implements FileVisitor<Path> {
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         var fileName = file.getFileName().toString();
         if (fileName.endsWith(JAVA_FILE_ENDING)) {
-            new ClassOrInterfaceVisitor().visit(StaticJavaParser.parse(file), classes);
+            new ClassOrInterfaceVisitor().visit(StaticJavaParser.parse(file), project);
         }
 
         return FileVisitResult.CONTINUE;
@@ -47,17 +45,10 @@ public class JavaFileVisitor implements FileVisitor<Path> {
     }
 
     /**
-     * @return the classNames
+     * @return the project
      */
-    public MutableList<String> getClassNames() {
-        return classes.collect(JavaClassOrInterface::getFullyQualifiedName);
-    }
-
-    /**
-     * @return the classes
-     */
-    public MutableList<JavaClassOrInterface> getClasses() {
-        return classes;
+    public JavaProject getProject() {
+        return project;
     }
 
 }
