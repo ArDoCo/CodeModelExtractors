@@ -44,7 +44,6 @@ public class JavaCodeModelExtractor {
         } catch (IllegalArgumentException | ParseException e) {
             logger.error(e.getMessage());
             printUsage();
-
             return;
         }
 
@@ -66,38 +65,38 @@ public class JavaCodeModelExtractor {
         runExtraction(inputDir, outputDir);
     }
 
-    private static void printUsage() {
-        var formatter = new HelpFormatter();
-        formatter.printHelp("JavaCodeModelExtractor.jar", options);
-    }
-
     private static void runExtraction(Path startingDir, Path outputDir) {
         var javaFileVisitor = new JavaFileVisitor();
         // walk all files and run the JavaFileVisitor
         try {
             Files.walkFileTree(startingDir, javaFileVisitor);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e.getCause());
         }
         // afterwards, process information and save them
         processAndSaveInformation(javaFileVisitor);
     }
 
     private static void processAndSaveInformation(JavaFileVisitor javaFileVisitor) {
-        javaFileVisitor.getClassNames().forEach(System.out::println);
-        System.out.println();
+        javaFileVisitor.getClassNames().forEach(logger::info);
+        logger.info("\n");
         var clazz = javaFileVisitor.getClasses().select(m -> m.getName().equals("LoopHelper")).getFirst();
         clazz.getConstructors().forEach(c -> {
-            System.out.println(c.getContainer().getFullyQualifiedName());
-            System.out.println(c.getJavadocContent());
+            logger.info(c.getContainer().getFullyQualifiedName());
+            logger.info(c.getJavadocContent());
         });
         clazz.getAllMethods().forEach(m -> {
-            System.out.println(m.getContainer().getFullyQualifiedName());
-            System.out.println(m.getName());
-            System.out.println(m.getType());
-            System.out.println(m.getJavadocContent());
-            System.out.println();
+            logger.info(m.getContainer().getFullyQualifiedName());
+            logger.info(m.getName());
+            logger.info(m.getType());
+            logger.info(m.getJavadocContent());
+            logger.info("\n");
         });
+    }
+
+    private static void printUsage() {
+        var formatter = new HelpFormatter();
+        formatter.printHelp("JavaCodeModelExtractor.jar", options);
     }
 
     private static CommandLine parseCommandLine(String[] args) throws ParseException {
