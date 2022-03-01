@@ -70,6 +70,7 @@ public class JavaCodeModelExtractor {
     }
 
     private static void runExtraction(Path startingDir, Path outputDir) {
+        logger.info("Start extracting \"{}\".", startingDir.toString());
         var javaFileVisitor = new JavaFileVisitor();
         // walk all files and run the JavaFileVisitor
         try {
@@ -83,29 +84,21 @@ public class JavaCodeModelExtractor {
 
     private static void processAndSaveInformation(JavaProject javaFileVisitor, Path outputDir) {
         // process
-        javaFileVisitor.getClassNames().forEach(logger::info);
-        logger.info("\n");
-        var clazz = javaFileVisitor.getClassesAndInterfaces().select(m -> m.getName().equals("LoopHelper")).getFirst();
-        clazz.getConstructors().forEach(c -> {
-            logger.info(c.getContainer().getFullyQualifiedName());
-            logger.info(c.getJavadocContent());
-        });
-        clazz.getAllMethods().forEach(m -> {
-            logger.info(m.getContainer().getFullyQualifiedName());
-            logger.info(m.getName());
-            logger.info(m.getType());
-            logger.info(m.getJavadocContent());
-            logger.info("\n");
-        });
-        clazz.getAllComments().forEach(logger::info);
+        // no process for now
+        if (logger.isInfoEnabled()) {
+            var numClasses = javaFileVisitor.getClassesAndInterfaces().size();
+            logger.info("Extraction finished with {} extracted classes and interfaces.", numClasses);
+        }
 
         // finally, save the information
         save(javaFileVisitor, outputDir);
     }
 
     private static void save(JavaProject project, Path outputDir) {
+        logger.info("Saving to ontology at \"{}\"", outputDir.toString());
         var writer = new OntologyWriter(outputDir);
         writer.write(project);
+        logger.info("Finished saving. Exiting now...");
     }
 
     private static void printUsage() {
