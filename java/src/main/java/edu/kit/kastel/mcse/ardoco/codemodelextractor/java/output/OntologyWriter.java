@@ -1,7 +1,6 @@
 /* Licensed under MIT 2022. */
 package edu.kit.kastel.mcse.ardoco.codemodelextractor.java.output;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import org.apache.jena.ontology.OntClass;
@@ -40,7 +39,8 @@ public class OntologyWriter {
     private OntologyInterface ontology = null;
     private String outputFile;
 
-    private OntologyWriter() {
+    private OntologyWriter(String outputFile) {
+        this.outputFile = outputFile;
     }
 
     /**
@@ -50,8 +50,7 @@ public class OntologyWriter {
      * @return the OntologyWriter
      */
     public static OntologyWriter withEmptyOntology(Path outputPath) {
-        var ow = new OntologyWriter();
-        ow.outputFile = outputPath.toAbsolutePath() + File.separator + "output.owl";
+        var ow = new OntologyWriter(outputPath.toString());
         ow.ontology = OntologyConnector.createWithEmptyOntology(DEFAULT_NAME_SPACE_URI);
         return ow;
     }
@@ -64,8 +63,7 @@ public class OntologyWriter {
      * @return the OntologyWriter
      */
     public static OntologyWriter extendExistingOntology(Path existingOntology, Path outputPath) {
-        var ow = new OntologyWriter();
-        ow.outputFile = outputPath.toAbsolutePath() + File.separator + "output.owl";
+        var ow = new OntologyWriter(outputPath.toString());
         ow.ontology = new OntologyConnector(existingOntology.toString());
         return ow;
     }
@@ -114,7 +112,7 @@ public class OntologyWriter {
         // add data properties (name, fqn)
         ontology.addPropertyToIndividual(individual, nameProperty, classOrInterfaceName);
         ontology.addPropertyToIndividual(individual, fqnProperty, classOrInterface.getFullyQualifiedName());
-        ontology.addPropertyToIndividual(individual, isInterfaceProperty, Boolean.toString(classOrInterface.isInterface()));
+        ontology.addPropertyToIndividual(individual, isInterfaceProperty, classOrInterface.isInterface());
 
         // go over methods
         for (var method : classOrInterface.getAllMethods()) {

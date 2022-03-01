@@ -73,7 +73,7 @@ public class JavaCodeModelExtractor {
     }
 
     private static void runExtraction(Path startingDir, Path outputDir, Path extendDir) {
-        logger.info("Start extracting \"{}\".", startingDir.toString());
+        logger.info("Start extracting \"{}\".", startingDir);
         var javaFileVisitor = new JavaFileVisitor();
         // walk all files and run the JavaFileVisitor
         try {
@@ -103,7 +103,7 @@ public class JavaCodeModelExtractor {
         if (extendDir == null) {
             writer = OntologyWriter.withEmptyOntology(outputDir);
         } else {
-            logger.info("Extending existing ontology at \"{}\"", extendDir.toString());
+            logger.info("Extending existing ontology at \"{}\"", extendDir);
             writer = OntologyWriter.extendExistingOntology(extendDir, outputDir);
         }
 
@@ -135,7 +135,7 @@ public class JavaCodeModelExtractor {
         opt.setType(String.class);
         options.addOption(opt);
 
-        opt = new Option(CMD_OUT_DIR, "out", true, "path to the output directory");
+        opt = new Option(CMD_OUT_DIR, "out", true, "path to the output file that should be used for saving");
         opt.setRequired(true);
         opt.setType(String.class);
         options.addOption(opt);
