@@ -4,8 +4,8 @@ package edu.kit.kastel.mcse.ardoco.codemodelextractor.java.output;
 import java.io.File;
 import java.nio.file.Path;
 
-import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,21 +30,48 @@ public class OntologyWriter {
     private OntClass classOrInterfaceOntClass;
     private OntClass methodOntClass;
     private OntClass codeCommentOntClass;
-    private DatatypeProperty javadocContentProperty;
-    private DatatypeProperty typeProperty;
-    private DatatypeProperty textProperty;
-    private DatatypeProperty nameProperty;
-    private DatatypeProperty fqnProperty;
+    private OntProperty javadocContentProperty;
+    private OntProperty typeProperty;
+    private OntProperty textProperty;
+    private OntProperty nameProperty;
+    private OntProperty fqnProperty;
+    private OntProperty isInterfaceProperty;
 
     private OntologyInterface ontology = null;
-    private Path outputPath;
+    private String outputFile;
 
-    public OntologyWriter(Path outputPath) {
-        this.outputPath = outputPath;
-        this.ontology = OntologyConnector.createWithEmptyOntology(DEFAULT_NAME_SPACE_URI);
+    private OntologyWriter() {
+    }
+
+    /**
+     * Write to a new, empty ontology
+     *
+     * @param outputPath path of the folder where to save to
+     * @return the OntologyWriter
+     */
+    public static OntologyWriter withEmptyOntology(Path outputPath) {
+        var ow = new OntologyWriter();
+        ow.outputFile = outputPath.toAbsolutePath() + File.separator + "output.owl";
+        ow.ontology = OntologyConnector.createWithEmptyOntology(DEFAULT_NAME_SPACE_URI);
+        return ow;
+    }
+
+    /**
+     * Write to an existing ontology and extend it.
+     *
+     * @param existingOntology the path to the existing ontology
+     * @param outputPath       the path of the folder where to save to
+     * @return the OntologyWriter
+     */
+    public static OntologyWriter extendExistingOntology(Path existingOntology, Path outputPath) {
+        var ow = new OntologyWriter();
+        ow.outputFile = outputPath.toAbsolutePath() + File.separator + "output.owl";
+        ow.ontology = new OntologyConnector(existingOntology.toString());
+        return ow;
     }
 
     private void init() {
+        logger.info("Init writing to ontology");
         if (ontology == null) {
             ontology = OntologyConnector.createWithEmptyOntology(DEFAULT_NAME_SPACE_URI);
         }
@@ -59,22 +86,24 @@ public class OntologyWriter {
         codeCommentOntClass = ontology
                 .getClassByIri("https://informalin.github.io/knowledgebases/informalin_base_java.owl#OWLClass_fcaa349b_0dde_4b4d_bab3_7971faad212a")
                 .orElseThrow();
-        javadocContentProperty = ontology.getDataProperty("javadocContent").orElseThrow();
-        typeProperty = ontology.getDataProperty("type").orElseThrow();
-        textProperty = ontology.getDataProperty("text").orElseThrow();
-        nameProperty = ontology.getDataProperty("name").orElseThrow();
-        fqnProperty = ontology.getDataProperty("fullyQualifiedName").orElseThrow();
+        javadocContentProperty = ontology.getPropertyByIri("https://informalin.github.io/knowledgebases/informalin_base_java.owl#javadocContent").orElseThrow();
+        typeProperty = ontology.getPropertyByIri("https://informalin.github.io/knowledgebases/informalin_base_java.owl#type").orElseThrow();
+        textProperty = ontology.getPropertyByIri("https://informalin.github.io/knowledgebases/informalin_base_java.owl#text").orElseThrow();
+        nameProperty = ontology.getPropertyByIri("https://informalin.github.io/knowledgebases/informalin_base_java.owl#name").orElseThrow();
+        fqnProperty = ontology.getPropertyByIri("https://informalin.github.io/knowledgebases/informalin_base_java.owl#fullyQualifiedName").orElseThrow();
+        isInterfaceProperty = ontology.getPropertyByIri("https://informalin.github.io/knowledgebases/informalin_base_java.owl#isInterface").orElseThrow();
     }
 
     public void write(JavaProject project) {
         init();
 
+        logger.info("Start actual writing");
         for (var classOrInterface : project.getClassesAndInterfaces()) {
             writeClassOrInterface(classOrInterface);
         }
 
-        var fileString = outputPath.toAbsolutePath() + File.separator + "output.owl";
-        ontology.save(fileString);
+        logger.info("Start saving to file \"{}\"", outputFile);
+        ontology.save(outputFile);
     }
 
     private void writeClassOrInterface(JavaClassOrInterface classOrInterface) {
@@ -85,6 +114,7 @@ public class OntologyWriter {
         // add data properties (name, fqn)
         ontology.addPropertyToIndividual(individual, nameProperty, classOrInterfaceName);
         ontology.addPropertyToIndividual(individual, fqnProperty, classOrInterface.getFullyQualifiedName());
+        ontology.addPropertyToIndividual(individual, isInterfaceProperty, Boolean.toString(classOrInterface.isInterface()));
 
         // go over methods
         for (var method : classOrInterface.getAllMethods()) {

@@ -31,6 +31,7 @@ public class JavaCodeModelExtractor {
     private static final String CMD_HELP = "h";
     private static final String CMD_IN_DIR = "i";
     private static final String CMD_OUT_DIR = "o";
+    private static final String CMD_IN_OWL = "e";
 
     private static Options options;
 
@@ -58,18 +59,20 @@ public class JavaCodeModelExtractor {
 
         Path inputDir = null;
         Path outputDir = null;
+        Path extendDir = null;
         try {
             inputDir = ensureDir(cmd.getOptionValue(CMD_IN_DIR), true);
             outputDir = ensureDir(cmd.getOptionValue(CMD_OUT_DIR), true);
+            extendDir = ensureDir(cmd.getOptionValue(CMD_IN_OWL), true);
         } catch (IOException e) {
             logger.warn(e.getMessage(), e.getCause());
             return;
         }
 
-        runExtraction(inputDir, outputDir);
+        runExtraction(inputDir, outputDir, extendDir);
     }
 
-    private static void runExtraction(Path startingDir, Path outputDir) {
+    private static void runExtraction(Path startingDir, Path outputDir, Path extendDir) {
         logger.info("Start extracting \"{}\".", startingDir.toString());
         var javaFileVisitor = new JavaFileVisitor();
         // walk all files and run the JavaFileVisitor
@@ -79,10 +82,10 @@ public class JavaCodeModelExtractor {
             logger.warn(e.getMessage(), e.getCause());
         }
         // afterwards, process information and save them
-        processAndSaveInformation(javaFileVisitor.getProject(), outputDir);
+        processAndSaveInformation(javaFileVisitor.getProject(), outputDir, extendDir);
     }
 
-    private static void processAndSaveInformation(JavaProject javaFileVisitor, Path outputDir) {
+    private static void processAndSaveInformation(JavaProject javaFileVisitor, Path outputDir, Path extendDir) {
         // process
         // no process for now
         if (logger.isInfoEnabled()) {
@@ -91,12 +94,19 @@ public class JavaCodeModelExtractor {
         }
 
         // finally, save the information
-        save(javaFileVisitor, outputDir);
+        save(javaFileVisitor, outputDir, extendDir);
     }
 
-    private static void save(JavaProject project, Path outputDir) {
-        logger.info("Saving to ontology at \"{}\"", outputDir.toString());
-        var writer = new OntologyWriter(outputDir);
+    private static void save(JavaProject project, Path outputDir, Path extendDir) {
+        logger.info("Writing to ontology");
+        OntologyWriter writer;
+        if (extendDir == null) {
+            writer = OntologyWriter.withEmptyOntology(outputDir);
+        } else {
+            logger.info("Extending existing ontology at \"{}\"", extendDir.toString());
+            writer = OntologyWriter.extendExistingOntology(extendDir, outputDir);
+        }
+
         writer.write(project);
         logger.info("Finished saving. Exiting now...");
     }
@@ -117,6 +127,11 @@ public class JavaCodeModelExtractor {
 
         opt = new Option(CMD_IN_DIR, "in", true, "path to the input directory");
         opt.setRequired(true);
+        opt.setType(String.class);
+        options.addOption(opt);
+
+        opt = new Option(CMD_IN_OWL, "extend", true, "path to the owl file that should be extended (instead of creating from empty)");
+        opt.setRequired(false);
         opt.setType(String.class);
         options.addOption(opt);
 
