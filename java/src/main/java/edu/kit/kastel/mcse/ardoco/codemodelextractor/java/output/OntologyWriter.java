@@ -1,7 +1,7 @@
 /* Licensed under MIT 2022. */
 package edu.kit.kastel.mcse.ardoco.codemodelextractor.java.output;
 
-import java.nio.file.Path;
+import java.io.File;
 
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntProperty;
@@ -46,11 +46,11 @@ public class OntologyWriter {
     /**
      * Write to a new, empty ontology
      *
-     * @param outputPath path of the folder where to save to
+     * @param outputFile path of the folder where to save to
      * @return the OntologyWriter
      */
-    public static OntologyWriter withEmptyOntology(Path outputPath) {
-        var ow = new OntologyWriter(outputPath.toString());
+    public static OntologyWriter withEmptyOntology(File outputFile) {
+        var ow = new OntologyWriter(outputFile.toString());
         ow.ontology = OntologyConnector.createWithEmptyOntology(DEFAULT_NAME_SPACE_URI);
         return ow;
     }
@@ -62,8 +62,8 @@ public class OntologyWriter {
      * @param outputPath       the path of the folder where to save to
      * @return the OntologyWriter
      */
-    public static OntologyWriter extendExistingOntology(Path existingOntology, Path outputPath) {
-        var ow = new OntologyWriter(outputPath.toString());
+    public static OntologyWriter extendExistingOntology(File existingOntology, File outputFile) {
+        var ow = new OntologyWriter(outputFile.toString());
         ow.ontology = new OntologyConnector(existingOntology.toString());
         return ow;
     }

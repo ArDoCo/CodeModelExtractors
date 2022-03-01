@@ -58,21 +58,21 @@ public class JavaCodeModelExtractor {
         }
 
         Path inputDir = null;
-        Path outputDir = null;
-        Path extendDir = null;
+        File outputFile = null;
+        File extendFile = null;
         try {
             inputDir = ensureDir(cmd.getOptionValue(CMD_IN_DIR), true);
-            outputDir = ensureDir(cmd.getOptionValue(CMD_OUT_DIR), true);
-            extendDir = ensureDir(cmd.getOptionValue(CMD_IN_OWL), true);
+            outputFile = new File(cmd.getOptionValue(CMD_OUT_DIR));
+            extendFile = new File(cmd.getOptionValue(CMD_IN_OWL));
         } catch (IOException e) {
             logger.warn(e.getMessage(), e.getCause());
             return;
         }
 
-        runExtraction(inputDir, outputDir, extendDir);
+        runExtraction(inputDir, outputFile, extendFile);
     }
 
-    private static void runExtraction(Path startingDir, Path outputDir, Path extendDir) {
+    private static void runExtraction(Path startingDir, File outputFile, File extendFile) {
         logger.info("Start extracting \"{}\".", startingDir);
         var javaFileVisitor = new JavaFileVisitor();
         // walk all files and run the JavaFileVisitor
@@ -82,10 +82,10 @@ public class JavaCodeModelExtractor {
             logger.warn(e.getMessage(), e.getCause());
         }
         // afterwards, process information and save them
-        processAndSaveInformation(javaFileVisitor.getProject(), outputDir, extendDir);
+        processAndSaveInformation(javaFileVisitor.getProject(), outputFile, extendFile);
     }
 
-    private static void processAndSaveInformation(JavaProject javaFileVisitor, Path outputDir, Path extendDir) {
+    private static void processAndSaveInformation(JavaProject javaFileVisitor, File outputFile, File extendFile) {
         // process
         // no process for now
         if (logger.isInfoEnabled()) {
@@ -94,17 +94,17 @@ public class JavaCodeModelExtractor {
         }
 
         // finally, save the information
-        save(javaFileVisitor, outputDir, extendDir);
+        save(javaFileVisitor, outputFile, extendFile);
     }
 
-    private static void save(JavaProject project, Path outputDir, Path extendDir) {
+    private static void save(JavaProject project, File outputFile, File extendFile) {
         logger.info("Writing to ontology");
         OntologyWriter writer;
-        if (extendDir == null) {
-            writer = OntologyWriter.withEmptyOntology(outputDir);
+        if (extendFile == null) {
+            writer = OntologyWriter.withEmptyOntology(outputFile);
         } else {
-            logger.info("Extending existing ontology at \"{}\"", extendDir);
-            writer = OntologyWriter.extendExistingOntology(extendDir, outputDir);
+            logger.info("Extending existing ontology at \"{}\"", extendFile);
+            writer = OntologyWriter.extendExistingOntology(extendFile, outputFile);
         }
 
         writer.write(project);
