@@ -14,6 +14,18 @@
     <module>java</module>
     <module>java-model</module>
   </modules>
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub ArDoCo/CodeModelExtractors Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/ArDoCo/CodeModelExtractors</url>
+    </repository>
+    <snapshotRepository>
+      <id>github</id>
+      <name>GitHub ArDoCo/CodeModelExtractors Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/ArDoCo/CodeModelExtractors</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -56,7 +68,6 @@
       <url>https://maven.pkg.github.com/InFormALin/Ontology-Connector</url>
     </repository>
   </repositories>
-
   <build>
     <pluginManagement>
       <plugins>
