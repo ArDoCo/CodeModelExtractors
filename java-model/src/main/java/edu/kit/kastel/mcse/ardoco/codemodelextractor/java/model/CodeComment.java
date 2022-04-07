@@ -1,17 +1,27 @@
 /* Licensed under MIT 2022. */
 package edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model;
 
+import java.io.Serializable;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Jan Keim
- *
  */
-public class CodeComment {
+public class CodeComment implements Serializable {
+    @JsonProperty
     private String type;
+    @JsonProperty
     private String text;
+    @JsonProperty
     private int lineNumber;
+    @JsonProperty
     private boolean isOrphan;
+
+    CodeComment() {
+        // Jackson
+    }
 
     CodeComment(String type, String text, int lineNumber, boolean isOrphan) {
         this.type = type;

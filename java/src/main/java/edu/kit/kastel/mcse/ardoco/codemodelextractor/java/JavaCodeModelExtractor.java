@@ -6,16 +6,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model.JavaProject;
 import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.output.OntologyWriter;
@@ -23,7 +21,6 @@ import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.visitors.JavaFileVisit
 
 /**
  * @author Jan Keim
- *
  */
 public class JavaCodeModelExtractor {
     private static final Logger logger = LogManager.getLogger(JavaCodeModelExtractor.class);
@@ -32,6 +29,11 @@ public class JavaCodeModelExtractor {
     private static final String CMD_IN_DIR = "i";
     private static final String CMD_OUT_DIR = "o";
     private static final String CMD_IN_OWL = "e";
+    private static final String CMD_OUT_TYPE = "t";
+
+    private enum Output {
+        JSON, OWL
+    }
 
     private static Options options;
 
@@ -39,11 +41,8 @@ public class JavaCodeModelExtractor {
         throw new IllegalAccessError();
     }
 
-    /**
-     * @param args
-     */
     public static void main(String[] args) {
-        CommandLine cmd = null;
+        CommandLine cmd;
         try {
             cmd = parseCommandLine(args);
         } catch (IllegalArgumentException | ParseException e) {
@@ -57,22 +56,18 @@ public class JavaCodeModelExtractor {
             return;
         }
 
-        Path inputDir = null;
-        File outputFile = null;
-        File extendFile = null;
-        try {
-            inputDir = ensureDir(cmd.getOptionValue(CMD_IN_DIR), true);
-            outputFile = new File(cmd.getOptionValue(CMD_OUT_DIR));
-            extendFile = new File(cmd.getOptionValue(CMD_IN_OWL));
-        } catch (IOException e) {
-            logger.warn(e.getMessage(), e.getCause());
-            return;
-        }
+        Path inputDir;
+        File outputFile;
+        File extendFile;
+        inputDir = ensureDir(cmd.getOptionValue(CMD_IN_DIR));
+        outputFile = new File(cmd.getOptionValue(CMD_OUT_DIR));
+        extendFile = new File(cmd.getOptionValue(CMD_IN_OWL));
+        Output out = Output.valueOf(cmd.getOptionValue(CMD_OUT_TYPE));
 
-        runExtraction(inputDir, outputFile, extendFile);
+        runExtraction(inputDir, outputFile, extendFile, out);
     }
 
-    private static void runExtraction(Path startingDir, File outputFile, File extendFile) {
+    private static void runExtraction(Path startingDir, File outputFile, File extendFile, Output out) {
         logger.info("Start extracting \"{}\".", startingDir);
         var javaFileVisitor = new JavaFileVisitor();
         // walk all files and run the JavaFileVisitor
@@ -82,22 +77,42 @@ public class JavaCodeModelExtractor {
             logger.warn(e.getMessage(), e.getCause());
         }
         // afterwards, process information and save them
-        processAndSaveInformation(javaFileVisitor.getProject(), outputFile, extendFile);
+        processAndSaveInformation(javaFileVisitor.getProject(), outputFile, extendFile, out);
     }
 
-    private static void processAndSaveInformation(JavaProject javaFileVisitor, File outputFile, File extendFile) {
+    private static void processAndSaveInformation(JavaProject javaProject, File outputFile, File extendFile, Output out) {
         // process
         // no process for now
         if (logger.isInfoEnabled()) {
-            var numClasses = javaFileVisitor.getClassesAndInterfaces().size();
+            var numClasses = javaProject.getClassesAndInterfaces().size();
             logger.info("Extraction finished with {} extracted classes and interfaces.", numClasses);
         }
 
         // finally, save the information
-        save(javaFileVisitor, outputFile, extendFile);
+        if (out == Output.OWL)
+            saveOntology(javaProject, outputFile, extendFile);
+        else
+            saveToJSON(javaProject, outputFile);
+
     }
 
-    private static void save(JavaProject project, File outputFile, File extendFile) {
+    private static void saveToJSON(JavaProject javaProject, File outputFile) {
+        ObjectMapper oom = new ObjectMapper();
+        oom.setVisibility(oom.getSerializationConfig()
+                .getDefaultVisibilityChecker() //
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)//
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)//
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)//
+                .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE));
+
+        try {
+            oom.writeValue(outputFile, javaProject);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    private static void saveOntology(JavaProject project, File outputFile, File extendFile) {
         logger.info("Writing to ontology");
         OntologyWriter writer;
         if (extendFile == null) {
@@ -140,31 +155,31 @@ public class JavaCodeModelExtractor {
         opt.setType(String.class);
         options.addOption(opt);
 
+        opt = new Option(CMD_OUT_TYPE, "output-format", true, "specified output format: one of " + Arrays.toString(Output.values()));
+        opt.setRequired(true);
+        opt.setType(Output.class);
+        options.addOption(opt);
+
         CommandLineParser parser = new DefaultParser();
         return parser.parse(options, args);
 
     }
 
     /**
-     * Ensure that a directory exists (or create if allowed by parameter).
+     * Ensure that a directory exists (or create).
      *
-     * @param path   the path to the file
-     * @param create indicates whether creation is allowed
+     * @param path the path to the file
      * @return the file
-     * @throws IOException if something went wrong
      */
-    private static Path ensureDir(String path, boolean create) throws IOException {
+    private static Path ensureDir(String path) {
         var file = new File(path);
         if (file.isDirectory() && file.exists()) {
             return Paths.get(file.toURI());
         }
-        if (create) {
-            file.mkdirs();
-            return Paths.get(file.toURI());
-        }
 
-        // File not available
-        throw new IOException("The specified directory does not exist: " + path);
+        file.mkdirs();
+        return Paths.get(file.toURI());
+
     }
 
 }

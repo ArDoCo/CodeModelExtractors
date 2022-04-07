@@ -59,7 +59,7 @@ public class OntologyWriter {
      * Write to an existing ontology and extend it.
      *
      * @param existingOntology the path to the existing ontology
-     * @param outputPath       the path of the folder where to save to
+     * @param outputFile       the path of the folder where to save to
      * @return the OntologyWriter
      */
     public static OntologyWriter extendExistingOntology(File existingOntology, File outputFile) {

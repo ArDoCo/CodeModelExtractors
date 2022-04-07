@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import com.github.javaparser.StaticJavaParser;
-
 import edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model.JavaProject;
 
 /**

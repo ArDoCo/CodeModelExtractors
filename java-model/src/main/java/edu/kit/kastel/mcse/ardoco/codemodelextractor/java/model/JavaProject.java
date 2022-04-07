@@ -1,14 +1,21 @@
+/* Licensed under MIT 2022. */
 package edu.kit.kastel.mcse.ardoco.codemodelextractor.java.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.ImmutableList;
-import org.eclipse.collections.api.list.MutableList;
 
-public class JavaProject {
-    private MutableList<JavaClassOrInterface> classesAndInterfaces;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class JavaProject implements Serializable {
+    @JsonProperty
+    private List<JavaClassOrInterface> classesAndInterfaces;
 
     public JavaProject() {
-        classesAndInterfaces = Lists.mutable.empty();
+        classesAndInterfaces = new ArrayList<>();
     }
 
     /**
@@ -23,7 +30,7 @@ public class JavaProject {
      * @return the classesAndInterfaces
      */
     public ImmutableList<JavaClassOrInterface> getClassesAndInterfaces() {
-        return classesAndInterfaces.toImmutable();
+        return Lists.immutable.withAll(classesAndInterfaces);
     }
 
     /**
