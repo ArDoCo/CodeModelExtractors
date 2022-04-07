@@ -18,7 +18,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
-        distribution: 'zulu'
+        distribution: 'temurin'
         java-version: 17
 
     - name: Cache Maven packages
@@ -32,7 +32,7 @@ jobs:
       with:
         servers: '[{ "id": "github", "username": "x-access-token", "password": "${{ secrets.GITHUB_TOKEN }}" }, { "id": "github-informalin", "username": "x-access-token", "password": "${{ secrets.GITHUB_TOKEN }}" }]'
     - name: Format with Spotless in Maven
-      run: cd java && mvn -B spotless:apply --file pom.xml
+      run: mvn -B spotless:apply --file pom.xml
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v4
       with:

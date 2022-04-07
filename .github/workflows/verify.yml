@@ -19,7 +19,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
-        distribution: 'zulu'
+        distribution: 'temurin'
         java-version: 17
     - name: Cache Maven packages
       uses: actions/cache@v3
@@ -32,4 +32,4 @@ jobs:
       with:
         servers: '[{ "id": "github", "username": "x-access-token", "password": "${{ secrets.GITHUB_TOKEN }}" }, { "id": "github-informalin", "username": "x-access-token", "password": "${{ secrets.GITHUB_TOKEN }}" }]'
     - name: Verify with Maven
-      run: cd java && mvn -B verify --file pom.xml -U -Dparallel=all -DperCoreThreadCount=false -DthreadCount=8 -T 1C
+      run: mvn -B verify --file pom.xml -U -Dparallel=all -DperCoreThreadCount=false -DthreadCount=8 -T 1C
