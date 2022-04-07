@@ -61,7 +61,7 @@ public class JavaCodeModelExtractor {
         File extendFile;
         inputDir = ensureDir(cmd.getOptionValue(CMD_IN_DIR));
         outputFile = new File(cmd.getOptionValue(CMD_OUT_DIR));
-        extendFile = new File(cmd.getOptionValue(CMD_IN_OWL));
+        extendFile = cmd.hasOption(CMD_IN_OWL) ? new File(cmd.getOptionValue(CMD_IN_OWL)) : null;
         Output out = Output.valueOf(cmd.getOptionValue(CMD_OUT_TYPE));
 
         runExtraction(inputDir, outputFile, extendFile, out);
