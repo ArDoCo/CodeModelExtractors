@@ -1,7 +1,7 @@
 # CodeModelExtractors
 
 In here, you can find extractors for (simple) code models, that extract things like available classes and interfaces along their methods and comments.
-The extraced information is saved to an ontology.
+The extracted information is saved to an ontology.
 
 
 ## Java

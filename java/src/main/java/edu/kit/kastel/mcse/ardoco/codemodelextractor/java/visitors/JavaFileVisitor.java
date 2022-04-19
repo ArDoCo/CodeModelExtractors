@@ -64,7 +64,7 @@ public class JavaFileVisitor implements FileVisitor<Path> {
     }
 
     private String calculateId() {
-        var data = filenames.toString();
+        var data = filenames.stream().sorted().toList().toString();
         UUID uuid = UUID.nameUUIDFromBytes(data.getBytes(StandardCharsets.UTF_8));
         return uuid.toString();
     }
