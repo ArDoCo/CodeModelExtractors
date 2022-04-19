@@ -46,6 +46,10 @@ public class JavaProject implements Serializable {
         this.id = id;
     }
 
+    public String getId() {
+        return id;
+    }
+
     /**
      * @return the classes
      */
