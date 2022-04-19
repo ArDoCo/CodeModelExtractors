@@ -12,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class JavaProject implements Serializable {
     @JsonProperty
+    private String id;
+    @JsonProperty
     private List<JavaClassOrInterface> classesAndInterfaces;
 
     public JavaProject() {
@@ -38,6 +40,10 @@ public class JavaProject implements Serializable {
      */
     public ImmutableList<String> getClassNames() {
         return getClasses().collect(JavaClassOrInterface::getFullyQualifiedName);
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
